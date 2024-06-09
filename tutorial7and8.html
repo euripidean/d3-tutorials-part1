@@ -21,41 +21,62 @@
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script>
-      const X_RANGE = [0, 600];
-      const Y_RANGE = [0, 400];
-      function getExtents(data) {
-        return d3.extent(data, (d) => d.precipitation);
+      const WIDTH = 600;
+      const HEIGHT = 400;
+      const MARGIN = 40;
+      const parseTime = d3.timeParse("%d/%m/%Y");
+      function getExtents(data, value) {
+        if (value === "precipitation") {
+          return d3.extent(data, (d) => d.precipitation);
+        } else {
+          return d3.extent(data, (d) => d.date);
+        }
       }
 
       function getXScale(data) {
-        const scale = d3.scaleLinear().domain([0, data.length]).range(X_RANGE);
+        const scale = d3
+          .scaleTime()
+          .domain(getExtents(data, "date"))
+          .range([MARGIN, WIDTH - MARGIN]);
         return scale;
       }
 
       function getYScale(data) {
-        const scale = d3.scaleLinear().domain(getExtents(data)).range(Y_RANGE);
+        const scale = d3
+          .scaleLinear()
+          .domain(getExtents(data, "precipitation"))
+          .range([HEIGHT - MARGIN, MARGIN])
+          .nice();
         return scale;
       }
 
       function getLineGen(xScale, yScale) {
         const lineGen = d3
           .line()
-          .x((d, i) => xScale(i))
+          .x((d) => xScale(d.date))
           .y((d) => yScale(d.precipitation))
           .curve(d3.curveLinear);
         return lineGen;
       }
 
+      function getParsedTime(data) {
+        data.forEach((d) => (d.date = parseTime(d.date)));
+      }
+
       function handleData(data) {
         const baData = getDataForState(data, "BA");
+        getParsedTime(baData);
         const scData = getDataForState(data, "SC");
+        getParsedTime(scData);
         const baXScale = getXScale(baData);
-        const baYScale = getYScale(baData);
-        const scXScale = getXScale(scData);
-        const scYScale = getYScale(scData);
 
-        const baLineGen = getLineGen(baXScale, baYScale);
-        const scLineGen = getLineGen(scXScale, scYScale);
+        const allData = baData.concat(scData);
+
+        const xScale = getXScale(allData);
+        const yScale = getYScale(allData);
+
+        const baLineGen = getLineGen(xScale, yScale);
+        const scLineGen = getLineGen(xScale, yScale);
 
         function getDataForState(data, state) {
           const arr = data
@@ -67,18 +88,36 @@
             });
           return arr;
         }
-        d3.select("#svg")
+        const svg = d3.select("#svg");
+        const graph = svg.append("g");
+        graph
           .append("path")
           .attr("d", baLineGen(baData))
           .attr("stroke-width", 1)
           .attr("stroke", "blue")
           .attr("fill", "none");
-        d3.select("#svg")
+        graph
           .append("path")
           .attr("d", scLineGen(scData))
           .attr("stroke-width", 1)
           .attr("stroke", "red")
           .attr("fill", "none");
+
+        const bottomAxis = d3.axisBottom(xScale);
+        const leftAxis = d3.axisLeft(yScale);
+
+        svg
+          .append("g")
+          // Position the group
+          .attr("transform", `translate(0, ${HEIGHT - MARGIN})`)
+          // generate the axis in the group
+          .call(bottomAxis);
+
+        // Append the group, transform, and add the axis
+        svg
+          .append("g")
+          .attr("transform", `translate(${MARGIN}, 0)`)
+          .call(leftAxis);
       }
 
       d3.csv("precipitation.csv").then(handleData);
