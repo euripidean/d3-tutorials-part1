@@ -64,10 +64,9 @@
       }
 
       function handleData(data) {
+        getParsedTime(data);
         const baData = getDataForState(data, "BA");
-        getParsedTime(baData);
         const scData = getDataForState(data, "SC");
-        getParsedTime(scData);
 
         const allData = baData.concat(scData);
 
