@@ -34,7 +34,14 @@
         const countryScale = d3
           .scaleOrdinal()
           .domain(countries)
-          .range(["cornflowerblue", "gold", "green", "tomato", "aqua"]);
+          .range([
+            "cornflowerblue",
+            "gold",
+            "green",
+            "tomato",
+            "aqua",
+            "hotpink",
+          ]);
         d3.select("#svg")
           .style("border", "1px solid")
           .style("background-color", "#f5f5f5")

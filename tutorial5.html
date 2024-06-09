@@ -41,7 +41,14 @@
         const countryScale = d3
           .scaleOrdinal()
           .domain(countries)
-          .range(["cornflowerblue", "gold", "green", "tomato", "aqua"]);
+          .range([
+            "cornflowerblue",
+            "gold",
+            "green",
+            "tomato",
+            "aqua",
+            "magenta",
+          ]);
         const angle = Math.PI * 1.75;
         groups
           .append("circle")
@@ -53,7 +60,7 @@
         groups;
         groups
           .append("text")
-          .text((d) => d.label) // set the text
+          .text((d) => d.label + `(${d.country})`) // set the text
           .attr(
             "x",
             (d) =>
@@ -100,6 +107,14 @@
           })
           .attr("stroke", "#000")
           .attr("fill", "none");
+        // 06 Challenges are included here!
+        node
+          .append("text")
+          .text((d) => d.label + ` (${d.country})`)
+          .attr("x", 10)
+          .attr("y", (d, i) => 490 - i * 20)
+          .style("font-family", "Helvetica")
+          .style("font-size", "18px");
       });
     </script>
   </body>
